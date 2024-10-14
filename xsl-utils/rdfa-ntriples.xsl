@@ -5,7 +5,7 @@
 
 <xsl:output method="text" encoding="UTF-8" />
 
-<xsl:param name="source" select="'_:'"/>
+<xsl:param name="source" select="'https://dstl.github.io/eleatics/KR/rdfa/'"/>
 <xsl:variable name="LANGUAGE" select="'@en'"/>
 <xsl:variable name="NS-RDF" select="'http://www.w3.org/1999/02/22-rdf-syntax-ns#'"/>
 
@@ -20,7 +20,7 @@
 
 <xsl:template match="*[@property]" mode="property">
 	<xsl:call-template name="callExpandIRI">
-		<xsl:with-param name="element" select="ancestor-or-self::*[@about|@href][1]"/>
+		<xsl:with-param name="element" select="ancestor-or-self::*[@about|@href|@typeof][1]"/>
 	</xsl:call-template>
 	<xsl:text> </xsl:text>
 	<xsl:call-template name="getProperty"/>
@@ -33,7 +33,7 @@
 <xsl:template match="*[@typeof]" mode="type">
 	<xsl:variable name="subject">
 		<xsl:call-template name="callExpandIRI">
-			<xsl:with-param name="element" select="ancestor-or-self::*[@about|@href][1]"/>
+			<xsl:with-param name="element" select="ancestor-or-self::*[@about|@href|@typeof][1]"/>
 		</xsl:call-template>
 	</xsl:variable>
 	<xsl:variable name="typelist">
@@ -55,7 +55,7 @@
 <xsl:template match="*[@rev]" mode="rev">
 	<xsl:variable name="object">
 		<xsl:call-template name="callExpandIRI">
-			<xsl:with-param name="element" select="ancestor-or-self::*[@about|@href][1]"/>
+			<xsl:with-param name="element" select="ancestor-or-self::*[@about|@href|@typeof][1]"/>
 		</xsl:call-template>
 	</xsl:variable>
 	<xsl:text> </xsl:text>
@@ -108,18 +108,18 @@
 	</xsl:call-template>
 	</xsl:variable>
 	<xsl:variable name="subject">
-		<xsl:call-template name="expandIRI">
-			<xsl:with-param name="name" select="@about"/>
+		<xsl:call-template name="callExpandIRI">
+			<xsl:with-param name="element" select="ancestor::*[@about|@href][1]"/>
 		</xsl:call-template>
 	</xsl:variable>
-	<xsl:apply-templates select="./*[@about]" mode="relobject">
+	<xsl:apply-templates select="descendant::*[@about|@typeof]" mode="relobject">
 		<xsl:with-param name="subject" select="$subject"/>
 		<xsl:with-param name="property" select="$property"/>
 	</xsl:apply-templates>
 </xsl:template>
 
 
-<xsl:template match="*[@about|@href]" mode="relobject">
+<xsl:template match="*[@about|@href|@typeof]" mode="relobject">
 	<xsl:param name="subject"/>
 	<xsl:param name="property"/>
 	<xsl:value-of select="$subject"/>
@@ -135,7 +135,7 @@
 
 <xsl:template match="*[@rel][@resource]" mode="rel">
 	<xsl:call-template name="callExpandIRI">
-		<xsl:with-param name="element" select="ancestor-or-self::*[@about|@href][1]"/>
+		<xsl:with-param name="element" select="ancestor-or-self::*[@about|@href|@typeof][1]"/>
 	</xsl:call-template>
 	<xsl:text> </xsl:text>
 	<xsl:call-template name="getProperty">
@@ -192,12 +192,11 @@
 
 <xsl:template name="expandIRI">
 	<xsl:param name="name"/>
-	<xsl:param name="source" select="'_:'"/>
 	<xsl:choose>
 		<xsl:when test="not($name)">
 			<!-- blank node: generate an ID -->
 			<xsl:text>_:</xsl:text>
-			<xsl:value-of select="generate-id()"/>
+			<xsl:value-of select="generate-id(current())"/>
 		</xsl:when>
 		<xsl:when test="starts-with($name, '#')">
 			<!-- prepend document URL if ID starts with '#' -->
@@ -234,14 +233,18 @@
 
 <xsl:template name="callExpandIRI">
 	<xsl:param name="element"/>
-	<xsl:param name="source" select="'_:'"/>
 	<xsl:variable name="name">
 		<xsl:choose>
 			<xsl:when test="$element/@about">
 				<xsl:value-of select="$element/@about"/>
 			</xsl:when>
-			<xsl:otherwise>
+			<xsl:when test="$element/@href">
 				<xsl:value-of select="$element/@href"/>
+			</xsl:when>
+			<xsl:otherwise>
+				<!-- blank node: generate an ID -->
+				<xsl:text>_:</xsl:text>
+				<xsl:value-of select="generate-id($element)"/>
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:variable>
