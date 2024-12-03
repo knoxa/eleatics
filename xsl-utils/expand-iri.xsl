@@ -43,5 +43,32 @@
 	</xsl:choose>
 </xsl:template>
 
+<xsl:template name="expandNamespace">
+	<xsl:param name="name"/>
+	<xsl:param name="source" select="'_:'"/>
+	<xsl:choose>
+		<xsl:when test="contains($name, ':')">
+			<!-- a URL, or a URI shortened using a prefix -->
+			<xsl:variable name="prefix" select="substring-before($name, ':')"/>
+			<xsl:variable name="ns" select="//namespace::*[name() = $prefix]" />
+			<xsl:choose>
+				<xsl:when test="$ns">
+					<!-- expand the namespace prefix -->
+					<xsl:value-of select="$ns" />
+					<xsl:value-of select="substring-after($name, ':')"/>
+				</xsl:when>
+				<xsl:otherwise>
+					<!-- use URL as is -->
+					<xsl:value-of select="$name"/>
+				</xsl:otherwise>
+			</xsl:choose>
+		</xsl:when>
+		<xsl:otherwise>
+			<!-- do nothing -->
+			<xsl:value-of select="$name"/>
+		</xsl:otherwise>
+	</xsl:choose>
+</xsl:template>
+
 </xsl:stylesheet>
  
