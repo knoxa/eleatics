@@ -20,7 +20,7 @@
 
 <xsl:template match="*[@property]" mode="property">
 	<xsl:call-template name="callExpandIRI">
-		<xsl:with-param name="element" select="ancestor-or-self::*[@about|@href][1]"/>
+		<xsl:with-param name="element" select="ancestor-or-self::*[@about|@href|@typeof][1]"/>
 	</xsl:call-template>
 	<xsl:text> </xsl:text>
 	<xsl:call-template name="getProperty"/>
@@ -33,7 +33,7 @@
 <xsl:template match="*[@typeof]" mode="type">
 	<xsl:variable name="subject">
 		<xsl:call-template name="callExpandIRI">
-			<xsl:with-param name="element" select="ancestor-or-self::*[@about|@href][1]"/>
+			<xsl:with-param name="element" select="."/>
 		</xsl:call-template>
 	</xsl:variable>
 	<xsl:variable name="typelist">
@@ -109,17 +109,17 @@
 	</xsl:variable>
 	<xsl:variable name="subject">
 		<xsl:call-template name="expandIRI">
-			<xsl:with-param name="name" select="@about"/>
+			<xsl:with-param name="name" select="ancestor-or-self::*[@about][1]/@about"/>
 		</xsl:call-template>
 	</xsl:variable>
-	<xsl:apply-templates select="./*[@about]" mode="relobject">
+	<xsl:apply-templates select="*[@about|@href|@typeof][1]" mode="relobject">
 		<xsl:with-param name="subject" select="$subject"/>
 		<xsl:with-param name="property" select="$property"/>
 	</xsl:apply-templates>
 </xsl:template>
 
 
-<xsl:template match="*[@about|@href]" mode="relobject">
+<xsl:template match="*[@about|@href|@typeof]" mode="relobject">
 	<xsl:param name="subject"/>
 	<xsl:param name="property"/>
 	<xsl:value-of select="$subject"/>
