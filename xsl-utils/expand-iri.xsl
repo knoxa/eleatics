@@ -5,7 +5,7 @@
 	<xsl:param name="name"/>
 	<xsl:param name="source" select="'_:'"/>
 	<xsl:choose>
-		<xsl:when test="not($name)">
+		<xsl:when test="not($name) or string-length($name) = 0">
 			<!-- blank node: generate an ID -->
 			<xsl:text>_:</xsl:text>
 			<xsl:value-of select="generate-id()"/>

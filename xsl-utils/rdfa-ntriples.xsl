@@ -11,10 +11,10 @@
 
 
 <xsl:template match="/">
-	<xsl:apply-templates select="//*[@typeof]" mode="type"/>
-	<xsl:apply-templates select="//*[@property]" mode="property"/>
-	<xsl:apply-templates select="//*[@rev]" mode="rev"/>
-	<xsl:apply-templates select="//*[@rel]" mode="rel"/>
+	<xsl:apply-templates select="/xhtml:html/xhtml:body//*[@typeof]" mode="type"/>
+	<xsl:apply-templates select="/xhtml:html/xhtml:body//*[@property]" mode="property"/>
+	<xsl:apply-templates select="/xhtml:html/xhtml:body//*[@rev]" mode="rev"/>
+	<xsl:apply-templates select="/xhtml:html/xhtml:body//*[@rel]" mode="rel"/>
 </xsl:template>
 
 
@@ -108,11 +108,11 @@
 	</xsl:call-template>
 	</xsl:variable>
 	<xsl:variable name="subject">
-		<xsl:call-template name="expandIRI">
-			<xsl:with-param name="name" select="ancestor-or-self::*[@about][1]/@about"/>
+		<xsl:call-template name="callExpandIRI">
+			<xsl:with-param name="element" select="ancestor::*[@about|@typeof|@href][1]"/>
 		</xsl:call-template>
 	</xsl:variable>
-	<xsl:apply-templates select="*[@about|@href|@typeof][1]" mode="relobject">
+	<xsl:apply-templates select="descendant-or-self::*[@about|@href|@typeof][1]" mode="relobject">
 		<xsl:with-param name="subject" select="$subject"/>
 		<xsl:with-param name="property" select="$property"/>
 	</xsl:apply-templates>
@@ -135,7 +135,7 @@
 
 <xsl:template match="*[@rel][@resource]" mode="rel">
 	<xsl:call-template name="callExpandIRI">
-		<xsl:with-param name="element" select="ancestor-or-self::*[@about|@href][1]"/>
+		<xsl:with-param name="element" select="ancestor-or-self::*[@about|@href|@typeof][1]"/>
 	</xsl:call-template>
 	<xsl:text> </xsl:text>
 	<xsl:call-template name="getProperty">
@@ -203,9 +203,11 @@
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:variable>
-	<xsl:call-template name="expandIRI">
-		<xsl:with-param name="name" select="$name"/>
-	</xsl:call-template>
+	<xsl:for-each select="$element">
+		<xsl:call-template name="expandIRI">
+			<xsl:with-param name="name" select="$name"/>
+		</xsl:call-template>
+	</xsl:for-each>
 </xsl:template>
 
 <xsl:template name="getProperty">
@@ -232,6 +234,11 @@
 			<xsl:value-of select="@content"/>
 			<xsl:text>&quot;</xsl:text>
 			<xsl:value-of select="$LANGUAGE"/>
+		</xsl:when>
+		<xsl:when test="@datetime">
+			<xsl:text>&quot;</xsl:text>
+			<xsl:value-of select="@datetime"/>
+			<xsl:text>&quot;</xsl:text>
 		</xsl:when>
 		<xsl:when test="@resource">
 			<xsl:call-template name="expandIRI">
